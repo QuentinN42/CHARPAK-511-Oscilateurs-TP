@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import linear_model
 from typing import Tuple, Callable
+from decimal import Decimal
 
 g: float = 9.81
 
@@ -37,13 +38,16 @@ if __name__ == "__main__":
     reg = linear_model.LinearRegression(fit_intercept=False)
     reg.fit(t, kt)
     k = reg.coef_[0]
+    k_ = '%.2E' % Decimal(k)
+    r2 = round(reg.score(t,kt),2)
 
     fig, _ax = plt.subplots()
+    _ax.set_title(f"kapa = {k_}, R2 = {r2}", fontsize=16)
     _ax.plot(t, reg.predict(t), "-r")
     _ax.plot(t, kt, "+g")
     _ax.set_xlabel('t')
     _ax.set_ylabel('kt')
     fig.show()
 
-    print(f"kapa = {k}")
-    print(f" R2  = {reg.score(t,kt)}")
+    print("kapa = ", k_)
+    print(f" R2  = {r2}")
