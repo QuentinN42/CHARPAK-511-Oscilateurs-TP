@@ -59,7 +59,7 @@ def omega_det(_x, _time, bo: float = 0.05):
     ind = np.array(list(x * y for x, y in zip(ax >= -bo, ax <= bo)))
     time = t[ind]
     delta = np.array([time[i] - time[max(0, i - 1)] for i in range(len(time))])
-    delta = 2 * delta[delta > 0.2]
+    delta = np.pi/delta[delta > 0.2]
     return delta.mean(), delta.std()
 
 
