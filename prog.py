@@ -55,20 +55,27 @@ def kapa_det(_ay, _time, plot: bool = True, bo: float = 0.05):
     return k_, r2
 
 
-def omega_det(_x, _time, bo: float = 0.05):
-    ind = np.array(list(x * y for x, y in zip(ax >= -bo, ax <= bo)))
-    time = t[ind]
+def T_det(_x, _time, bo: float = 0.05, plot: bool = False):
+    ind = np.array(list(x * y for x, y in zip(_x >= -bo, _x <= bo)))
+    time = _time[ind]
     delta = np.array([time[i] - time[max(0, i - 1)] for i in range(len(time))])
-    delta = np.pi/delta[delta > 0.2]
+    delta = delta[delta > 0.2][::2] + delta[delta > 0.2][1::2]
+
+    if plot:
+        plt.plot(_time, _x, "r")
+        plt.plot(time, _x[ind], "ob")
+        plt.show()
+
     return delta.mean(), delta.std()
 
 
 if __name__ == "__main__":
-    n = 10
+    n = 5
     ti, ax, ay = get_data()
     t = ti
     ax = rm_o(rebinet(ax, 50), 20000)
     ay = rm_o(rebinet(ay, 50), 20000)
-    print(t.shape, ax.shape, ay.shape)
-    print("k = {0}\tr2 = {1}".format(*kapa_det(ax, t)))
-    print("w = {0} +- {1}".format(*omega_det(ax[ti < n], t[ti < n])))
+    # print(t.shape, ax.shape, ay.shape)
+    # print("k = {0}\tr2 = {1}".format(*kapa_det(ax, t)))
+    T, err = T_det(ax[ti < n], t[ti < n], bo=0.01)
+    print(f"T = {T} +- {err}")
