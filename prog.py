@@ -35,7 +35,7 @@ def kapa_det(_ay, _time, plot: bool = True, bo: float = 0.05):
     t = _time[ind][_ay[ind] > 0]
     ae_m2kt: np.ndarray = _ay[ind][_ay[ind] > 0]
     e_m2kt: np.ndarray = ae_m2kt/max(ae_m2kt)
-    kt: np.ndarray = -1 / 2 * np.log(e_m2kt)[t < 300]
+    kt: np.ndarray = - np.log(e_m2kt)[t < 300]
     t = t[t < 300].reshape(-1, 1)
 
     reg = linear_model.LinearRegression(fit_intercept=False)
@@ -59,23 +59,23 @@ def T_det(_x, _time, bo: float = 0.05, plot: bool = False):
     ind = np.array(list(x * y for x, y in zip(_x >= -bo, _x <= bo)))
     time = _time[ind]
     delta = np.array([time[i] - time[max(0, i - 1)] for i in range(len(time))])
-    delta = delta[delta > 0.2][::2] + delta[delta > 0.2][1::2]
+    T = delta[delta > 0.2][::2] + delta[delta > 0.2][1::2]
 
     if plot:
         plt.plot(_time, _x, "r")
-        plt.plot(time, _x[ind], "ob")
+        plt.plot(time[delta > 0.2], _x[ind][delta > 0.2], "ob")
         plt.show()
 
-    return delta.mean(), delta.std()
+    return T.mean(), T.std()
 
 
 if __name__ == "__main__":
-    n = 5
+    n = 10.5
     ti, ax, ay = get_data()
     t = ti
     ax = rm_o(rebinet(ax, 50), 20000)
     ay = rm_o(rebinet(ay, 50), 20000)
     # print(t.shape, ax.shape, ay.shape)
-    # print("k = {0}\tr2 = {1}".format(*kapa_det(ax, t)))
-    T, err = T_det(ax[ti < n], t[ti < n], bo=0.01)
+    print("k = {0}\tr2 = {1}".format(*kapa_det(ax, t, plot=True)))
+    T, err = T_det(ax[ti < n], t[ti < n], bo=0.01, plot=True)
     print(f"T = {T} +- {err}")
