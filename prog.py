@@ -46,7 +46,7 @@ def kapa_det(_ay, _time, plot: bool = True, bo: float = 0.05):
 
     if plot:
         fig, _ax = plt.subplots()
-        _ax.set_title(f"kapa = {k_}, R2 = {r2}", fontsize=16)
+        _ax.set_title(f"kappa = {k_}, R2 = {r2}", fontsize=16)
         _ax.plot(t, reg.predict(t), "-r")
         _ax.plot(t, kt, "+g")
         _ax.set_xlabel('t')
@@ -55,16 +55,35 @@ def kapa_det(_ay, _time, plot: bool = True, bo: float = 0.05):
     return k_, r2
 
 
-def T_det(_x, _time, bo: float = 0.05, plot: bool = False):
+def T_det_x(_x, _time, bo: float = 0.05, plot: bool = False):
     ind = np.array(list(x * y for x, y in zip(_x >= -bo, _x <= bo)))
     time = _time[ind]
     delta = np.array([time[i] - time[max(0, i - 1)] for i in range(len(time))])
     T = delta[delta > 0.2][::2] + delta[delta > 0.2][1::2]
 
     if plot:
-        plt.plot(_time, _x, "r")
-        plt.plot(time[delta > 0.2], _x[ind][delta > 0.2], "ob")
-        plt.show()
+        _fig, _axs = plt.subplots(1, 1)
+        _axs.plot(_time, _x, "r")
+        _axs.plot(time[delta > 0.2], _x[ind][delta > 0.2], "ob")
+        _axs.set_xlabel('t')
+        _axs.set_ylabel('a_x')
+        _fig.show()
+
+    return T.mean(), T.std()
+
+def T_det_y(_y, _time, bo: float = 0.05, plot: bool = False):
+    ind = np.array(list(x * y for x, y in zip(_y >= -bo, _y <= bo)))
+    time = _time[ind]
+    delta = np.array([time[i] - time[max(0, i - 1)] for i in range(len(time))])
+    T = 2*delta[delta > 0.2][::2] + delta[delta > 0.2][1::2]
+
+    if plot:
+        _fig, _axs = plt.subplots(1, 1)
+        _axs.plot(_time, _y, "r")
+        _axs.plot(time[delta > 0.2], _y[ind][delta > 0.2], "ob")
+        _axs.set_xlabel('t')
+        _axs.set_ylabel('a_y')
+        _fig.show()
 
     return T.mean(), T.std()
 
@@ -73,9 +92,34 @@ if __name__ == "__main__":
     n = 10.5
     ti, ax, ay = get_data()
     t = ti
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    axs[0].plot(t, ax)
+    axs[0].set_ylabel('a_x')
+    axs[1].plot(t, ay)
+    axs[1].set_ylabel('a_y')
+    axs[1].set_xlabel('t')
+    fig.show()
     ax = rm_o(rebinet(ax, 50), 20000)
     ay = rm_o(rebinet(ay, 50), 20000)
-    # print(t.shape, ax.shape, ay.shape)
-    print("k = {0}\tr2 = {1}".format(*kapa_det(ax, t, plot=True)))
-    T, err = T_det(ax[ti < n], t[ti < n], bo=0.01, plot=True)
-    print(f"T = {T} +- {err}")
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    axs[0].plot(t, ax)
+    axs[0].set_ylabel('a_x')
+    axs[1].plot(t, ay)
+    axs[1].set_ylabel('a_y')
+    axs[1].set_xlabel('t')
+    fig.show()
+    k, r2 = kapa_det(ax, t, plot=True)
+    print(f"k = {k}\tr2 = {r2}")
+    xT, xerr = T_det_x(ax[ti < n], t[ti < n], bo=0.01, plot=True)
+    yT, yerr = T_det_y(ay[ti < n], t[ti < n], bo=0.01, plot=True)
+    print(f"x: T = {xT} +- {xerr}")
+    print(f"y: T = {yT} +- {yerr}")
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    axs[0].plot(t, ax)
+    axs[0].plot(t, np.exp(-k*t))
+    axs[0].set_ylabel('a_x')
+    axs[1].plot(t, ay)
+    axs[1].plot(t, np.exp(-2*k*t))
+    axs[1].set_ylabel('a_y')
+    axs[1].set_xlabel('t')
+    fig.show()
